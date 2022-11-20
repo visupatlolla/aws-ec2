@@ -15,8 +15,19 @@ def list_instance_ids_states(ec2_resource)
     puts 'No instances found.'
   else
     puts 'Instances -- ID, state:'
-    response.each do |instance|
-      puts "#{instance.id}, #{instance.state.name}"
+    open('hosts.csv', 'w') do |f|
+      f << "Instance Id, State, Tags"
+
+      response.each do |instance|
+        f << "#{instance.id}, #{instance.state.name}"
+
+        tags = ", "
+        instance.tags.each do |tag|
+          tags = tags + "#{tag.key}:#{tag.value};"
+        end
+        f << tags
+        f << "\n"
+    end
     end
   end
 rescue StandardError => e
