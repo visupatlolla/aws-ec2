@@ -1,1 +1,4 @@
-hosts.csv
+*.csv
+*.xls
+*.xlsx
+./csv

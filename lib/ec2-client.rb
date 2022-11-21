@@ -9,21 +9,28 @@ require 'aws-sdk-ec2'
 # @param ec2_resource [Aws::EC2::Resource] An initialized EC2 resource object.
 # @example
 #   list_instance_ids_states(Aws::EC2::Resource.new(region: 'us-east-1'))
-def list_instance_ids_states(ec2_resource)
+def list_instance_ids_states(ec2_resource, region)
   response = ec2_resource.instances
   if response.count.zero?
     puts 'No instances found.'
   else
-    puts 'Instances -- ID, state:'
-    open('hosts.csv', 'w') do |f|
-      f << "Instance Id, State, Tags"
+    puts 'Outputting instance types'
+
+    fileName = "hosts-" + region + ".csv"
+    open(fileName, 'w') do |f|
+      f << "Instance Id, State, Instance Type, Hostclass, Tags"
+      f << "\n"
 
       response.each do |instance|
-        f << "#{instance.id}, #{instance.state.name}"
+        f << "#{instance.id}, #{instance.state.name}, #{instance.instance_type}, "
 
         tags = ", "
+        hostclass = ""
         instance.tags.each do |tag|
           tags = tags + "#{tag.key}:#{tag.value};"
+          if tag.key == "hostclass"
+            f << "#{tag.value} "
+          end
         end
         f << tags
         f << "\n"
@@ -49,8 +56,8 @@ def run_me
   else
     region = ARGV[0]
   end
-  ec2_resource = Aws::EC2::Resource.new(region: region)
-  list_instance_ids_states(ec2_resource)
+  ec2_resource = Aws::EC2::Resource.new(region: region, http_read_timeout:300)
+  list_instance_ids_states(ec2_resource, region)
 end
 
 run_me if $PROGRAM_NAME == __FILE__
